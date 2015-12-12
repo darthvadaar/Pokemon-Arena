@@ -7,14 +7,9 @@ public class Pokemon{
 	private double hp, maxHp, energy;
 	private int attackNum;
 	public String name, type, resistance, weakness;
-	//arrays for attack information:
-	private ArrayList<String>attack;
-	private ArrayList<Double>cost;
-	private ArrayList<Double>dmg;
-	private ArrayList<String>special;
+	public ArrayList<Attack>attacks;
 	
-	public Pokemon(String name, double hp, String type, String resistance, String weakness, int attackNum,
-		ArrayList<String>attack, ArrayList<Double>cost, ArrayList<Double>dmg, ArrayList<String>special){
+	public Pokemon(String name, double hp, String type, String resistance, String weakness, int attackNum, ArrayList<Attack>attacks){
 		this.name = name;
 		this.hp = hp;
 		this.maxHp = hp;
@@ -24,41 +19,31 @@ public class Pokemon{
 		this.weakness = weakness;
 		this.attackNum = attackNum;
 		
-		this.attack = attack;
-		this.cost = cost;
-		this.dmg = dmg;
-		this.special = special;
+		this.attacks = attacks;
 	}
 	
 	public static void getStats(ArrayList<Pokemon>pList){
 		//presents the list of Pokemon in a nice table
 		System.out.printf(
-			"%2s|%-10s|%5s|%-10s|%-10s|%-10s|%-20s|%-20s|%-20s\n",
-			 "#","NAME", "HP", "TYPE", "RESISTANCE", "WEAKNESS", "ATTACK A","ATTACK B","ATTACK C"
-		);
+			"%-2s|%-10s|%-5s|%-10s|%-10s|%-10s|\n",
+			 "#","NAME", "HP", "TYPE", "RESISTANCE", "WEAKNESS");
 		for (Pokemon poke : pList){		
-			if (poke.attack.size() == 1){
+			if (poke.attacks.size() == 1){
 				System.out.printf(
-				"%-2s|%-10s|%5.1f|%-10s|%-10s|%-10s|%-20s|%-20s|%-20s\n",pList.indexOf(poke), poke.name, poke.hp, poke.type, poke.resistance, poke.weakness, poke.attack.get(0)," "," "
-				);		
+				"%-2s|%-10s|%5.1f|%-10s|%-10s|%-10s|\n",pList.indexOf(poke), poke.name, poke.hp, poke.type, poke.resistance, poke.weakness);		
 			}
-			else if (poke.attack.size() == 2){
+			else if (poke.attacks.size() == 2){
 				System.out.printf(
-				"%-2s|%-10s|%5.1f|%-10s|%-10s|%-10s|%-20s|%-20s|%-20s\n",pList.indexOf(poke), poke.name, poke.hp, poke.type, poke.resistance, poke.weakness, poke.attack.get(0), poke.attack.get(1)," "
-				);
+				"%-2s|%-10s|%5.1f|%-10s|%-10s|%-10s|\n",pList.indexOf(poke), poke.name, poke.hp, poke.type, poke.resistance, poke.weakness);
 			}
-			else if(poke.attack.size() == 3){
+			else if(poke.attacks.size() == 3){
 				System.out.printf(
-				"%-2s|%-10s|%5.1f|%-10s|%-10s|%-10s|%-20s|%-20s|%-20s\n",pList.indexOf(poke), poke.name, poke.hp, poke.type, poke.resistance, poke.weakness, poke.attack.get(0), poke.attack.get(1), poke.attack.get(2)
-				);			
+				"%-2s|%-10s|%5.1f|%-10s|%-10s|%-10s|\n",pList.indexOf(poke), poke.name, poke.hp, poke.type, poke.resistance, poke.weakness);			
 			}
 		}	
 	}
 	
 	
-	
-	
-	//attack(Pokemon other): does damage to other pokemon, reduce cost
 	
 	
 	
