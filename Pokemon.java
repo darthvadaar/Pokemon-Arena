@@ -7,7 +7,7 @@ public class Pokemon{
 	private double hp, maxHp, energy;
 	private int attackNum;
 	public String name, type, resistance, weakness;
-	public ArrayList<Attack>attacks;
+	private ArrayList<Attack>attacks;
 	
 	public Pokemon(String name, double hp, String type, String resistance, String weakness, int attackNum, ArrayList<Attack>attacks){
 		this.name = name;
@@ -22,26 +22,47 @@ public class Pokemon{
 		this.attacks = attacks;
 	}
 	
+	public static Pokemon switchPokemon(Pokemon[]chosen){
+		//allows the user to switch the pokemon on the arena
+		Scanner kb = new Scanner(System.in);
+		int newIndex = -1;
+		while (true){
+			System.out.println("Select a new Pokemon:");
+			Pokemon.getStats(chosen);
+			newIndex = kb.nextInt();
+			if (newIndex >=0 && newIndex < 4){//!!!!!!!!!!!!!!!!!!!!!!!!!add more exceptions like if p is dead or something
+				break;
+			}	
+		}
+		return chosen[newIndex];
+		
+	}
+	
+	
 	public static void getStats(ArrayList<Pokemon>pList){
 		//presents the list of Pokemon in a nice table
 		System.out.printf(
 			"%-2s|%-10s|%-5s|%-10s|%-10s|%-10s|\n",
 			 "#","NAME", "HP", "TYPE", "RESISTANCE", "WEAKNESS");
 		for (Pokemon poke : pList){		
-			if (poke.attacks.size() == 1){
-				System.out.printf(
-				"%-2s|%-10s|%5.1f|%-10s|%-10s|%-10s|\n",pList.indexOf(poke), poke.name, poke.hp, poke.type, poke.resistance, poke.weakness);		
-			}
-			else if (poke.attacks.size() == 2){
-				System.out.printf(
-				"%-2s|%-10s|%5.1f|%-10s|%-10s|%-10s|\n",pList.indexOf(poke), poke.name, poke.hp, poke.type, poke.resistance, poke.weakness);
-			}
-			else if(poke.attacks.size() == 3){
-				System.out.printf(
-				"%-2s|%-10s|%5.1f|%-10s|%-10s|%-10s|\n",pList.indexOf(poke), poke.name, poke.hp, poke.type, poke.resistance, poke.weakness);			
-			}
+			System.out.printf(
+			"%-2s|%-10s|%5.1f|%-10s|%-10s|%-10s|\n",pList.indexOf(poke), poke.name, poke.hp, poke.type, poke.resistance, poke.weakness);		
+
 		}	
 	}
+	
+	public static void getStats(Pokemon[]pList){
+		//presents the list of Pokemon in a nice table
+		System.out.printf(
+			"%-2s|%-10s|%-5s|%-10s|%-10s|%-10s|\n",
+			 "#","NAME", "HP", "TYPE", "RESISTANCE", "WEAKNESS");
+		for (Pokemon poke : pList){
+			System.out.printf(
+			"%-2s|%-10s|%5.1f|%-10s|%-10s|%-10s|\n",Arrays.asList(pList).indexOf(poke), poke.name, poke.hp, poke.type, poke.resistance, poke.weakness);		
+		}
+	}
+	
+	
 	
 	
 	

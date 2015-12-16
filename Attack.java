@@ -4,7 +4,7 @@
 
 public class Attack{
 	private int damage, cost;
-	public String name, special;
+	private String name, special;
 	
 	public Attack(String name, int cost, int damage, String special){
 		this.name = name;

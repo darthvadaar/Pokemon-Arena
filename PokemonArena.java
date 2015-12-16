@@ -1,22 +1,43 @@
 //ArenaGame.java
 //Sid Bedekar
 //This is the main file for the text based pokemon game.
+
+/*Known bugs
+ *make POKE_NUM final (IO EXCEPTION error)
+ *
+ *
+ */
+
 import java.util.*;
 import java.io.*;
 public class PokemonArena{
 	
-	private static int POKE_NUM = 0; 
+	private static int POKE_NUM = 0; //number of pokemon in the data file
+	private static Pokemon onArena; //the Pokemon that is currently playing
+	//private static Pokemon enemy; //the enemy the player's pokemon is facing
 	
 	public static void main(String[]args) throws IOException{
 		POKE_NUM = getPokeNum();
-		ArrayList<Pokemon> pokeList = createPokemon(); 
+		ArrayList<Pokemon> pokeList = createPokemon();
 		Pokemon[]chosen = selectPokemon(pokeList);
 		pokeList = removeChosen(chosen, pokeList);
-		Collections.shuffle(pokeList);
+		Collections.shuffle(pokeList);  //pokelist is now just the list of enemies
+		switchPokemon(chosen); //initial user pokemon selection
 		
+		for (Pokemon enemy: pokeList){
+			break;
+			//all the battles happen here
+		}
 		
-
 	}
+	
+	//METHOD FOR ATTACK, PASS and SWITCH(done)!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+	
+	public static void switchPokemon(Pokemon[] chosen){
+		onArena = Pokemon.switchPokemon(chosen);
+		System.out.printf("%s, I choose you!", onArena.name);
+	}
+	
 	
 	public static ArrayList<Pokemon> createPokemon() throws IOException{
 		//Reads the datafile, creates Pokemon objects and returns them in a primitive array
@@ -35,13 +56,13 @@ public class PokemonArena{
 				if ((i - 2) % 4 == 0){ //elements at index 6, 10, 14...(adding four starting at 6) are names
 					name = word[i];
 				}
-				else if((i - 3) % 4 == 0){//attack costs at index (7,11,15)
+				else if((i - 3) % 4 == 0){//attack costs at index (7,11,15..)
 					cost = Integer.parseInt(word[i]);
 				}
-				else if ((i - 4) % 4 == 0){//attack damages at index(8,12,16)
+				else if ((i - 4) % 4 == 0){//attack damages at index(8,12,16..)
 					damage = Integer.parseInt(word[i]);
 				}
-				else if ((i - 5) % 4 == 0){//attack specials at index(9,13,17)
+				else if ((i - 5) % 4 == 0){//attack specials at index(9,13,17..)
 					special = word[i];
 					Attack newAttack = new Attack(name, cost, damage, special); //special is the last thing to be added to the list so the attack is created here
 					attacks.add(newAttack);
