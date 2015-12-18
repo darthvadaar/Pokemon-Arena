@@ -3,7 +3,6 @@
 //This is the main file for the text based pokemon game.
 
 /*Known bugs
- *make POKE_NUM final (IO EXCEPTION error)
  *
  *
  */
@@ -13,9 +12,10 @@ import java.io.*;
 public class PokemonArena{
 	
 	private static int POKE_NUM = 0; //number of pokemon in the data file
-	private static Pokemon onArena; //the Pokemon that is currently playing
-	private static int turn; //0 = user, 1 = enemy
-	private static final int USER = 0;
+	private static Pokemon onArena; //the user Pokemon that is currently playing
+	//turn variables
+	private static int turn; 
+	private static final int USER = 0; 
 	private static final int ENEMY = 1;
 	
 	public static void main(String[]args) throws IOException{
@@ -31,12 +31,13 @@ public class PokemonArena{
 		for(Pokemon enemy: pokeList){
 			Pokemon.getStats(enemy, onArena);
 			if (turn == USER){
-				int act = action(); //1-attack, 2-retreat, 3-pass
+				int act = action();
 				if (act == 1){
 					//call attack method
 				}
 				else if(act == 2){
 					switchPokemon(chosen);
+					turn = nextTurn();
 				}
 				else if(act == 3){
 					turn = nextTurn();
@@ -51,18 +52,18 @@ public class PokemonArena{
 		
 	}
 	
-	public static int action(){//asks the user if they want to retreat, attack or pass
+	public static int action(){
+		//asks the user if they want to retreat, attack or pass
 		Scanner kb = new Scanner(System.in);
 		System.out.println("What would you like to do?");
 		System.out.println("1| Attack");
 		System.out.println("2| Retreat");
 		System.out.println("3| Pass");
-		return kb.nextInt();
-				
+		return kb.nextInt();			
 	}
 	
 	public static int nextTurn(){
-		//changes whose turn it is
+		//toggles between enemy and player turns
 		int newTurn;
 		if (turn == ENEMY){
 			newTurn = USER;		
@@ -73,7 +74,7 @@ public class PokemonArena{
 		return newTurn;
 	}
 	
-	//method for AI action
+	//method for AI action - randomly attack 
 	
 	public static void switchPokemon(Pokemon[] chosen){
 		onArena = Pokemon.switchPokemon(chosen);
