@@ -14,30 +14,71 @@ public class PokemonArena{
 	
 	private static int POKE_NUM = 0; //number of pokemon in the data file
 	private static Pokemon onArena; //the Pokemon that is currently playing
-	//private static Pokemon enemy; //the enemy the player's pokemon is facing
+	private static int turn; //0 = user, 1 = enemy
+	private static final int USER = 0;
+	private static final int ENEMY = 1;
 	
 	public static void main(String[]args) throws IOException{
+		Random rand = new Random();
 		POKE_NUM = getPokeNum();
 		ArrayList<Pokemon> pokeList = createPokemon();
 		Pokemon[]chosen = selectPokemon(pokeList);
 		pokeList = removeChosen(chosen, pokeList);
 		Collections.shuffle(pokeList);  //pokelist is now just the list of enemies
 		switchPokemon(chosen); //initial user pokemon selection
+		turn = rand.nextInt(2);
 		
-		for (Pokemon enemy: pokeList){
-			break;
-			//all the battles happen here
+		for(Pokemon enemy: pokeList){
+			Pokemon.getStats(enemy, onArena);
+			if (turn == USER){
+				int act = action(); //1-attack, 2-retreat, 3-pass
+				if (act == 1){
+					//call attack method
+				}
+				else if(act == 2){
+					switchPokemon(chosen);
+				}
+				else if(act == 3){
+					turn = nextTurn();
+				}	
+			}
+			else{
+				//AI action
+				turn = nextTurn();
+			}
 		}
+		
 		
 	}
 	
-	//METHOD FOR ATTACK, PASS and SWITCH(done)!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+	public static int action(){//asks the user if they want to retreat, attack or pass
+		Scanner kb = new Scanner(System.in);
+		System.out.println("What would you like to do?");
+		System.out.println("1| Attack");
+		System.out.println("2| Retreat");
+		System.out.println("3| Pass");
+		return kb.nextInt();
+				
+	}
+	
+	public static int nextTurn(){
+		//changes whose turn it is
+		int newTurn;
+		if (turn == ENEMY){
+			newTurn = USER;		
+		}
+		else{
+			newTurn = ENEMY;
+		}
+		return newTurn;
+	}
+	
+	//method for AI action
 	
 	public static void switchPokemon(Pokemon[] chosen){
 		onArena = Pokemon.switchPokemon(chosen);
-		System.out.printf("%s, I choose you!", onArena.name);
+		System.out.printf("%s, I choose you! \n", onArena.name);
 	}
-	
 	
 	public static ArrayList<Pokemon> createPokemon() throws IOException{
 		//Reads the datafile, creates Pokemon objects and returns them in a primitive array

@@ -35,9 +35,7 @@ public class Pokemon{
 			}	
 		}
 		return chosen[newIndex];
-		
 	}
-	
 	
 	public static void getStats(ArrayList<Pokemon>pList){
 		//presents the list of Pokemon in a nice table
@@ -46,9 +44,21 @@ public class Pokemon{
 			 "#","NAME", "HP", "TYPE", "RESISTANCE", "WEAKNESS");
 		for (Pokemon poke : pList){		
 			System.out.printf(
-			"%-2s|%-10s|%5.1f|%-10s|%-10s|%-10s|\n",pList.indexOf(poke), poke.name, poke.hp, poke.type, poke.resistance, poke.weakness);		
+			"%-2s|%-10s|%5.1f|%-10s|%-10s|%-10s|\n",pList.indexOf(poke),
+			 poke.name, poke.hp, poke.type, poke.resistance, poke.weakness);		
 
 		}	
+	}
+	
+	public static void getStats(Pokemon enemy, Pokemon ally){
+		//presents the Pokemon's stats in a nice table
+		System.out.printf(
+		"|%-10s|%-5s|%-10s|%-10s|%-10s|\n",
+		 "NAME", "HP", "TYPE", "RESISTANCE", "WEAKNESS");	
+		System.out.printf(
+		"|%-10s|%5.1f|%-10s|%-10s|%-10s|\n", enemy.name, enemy.hp, enemy.type, enemy.resistance, enemy.weakness);
+		System.out.printf(
+		"|%-10s|%5.1f|%-10s|%-10s|%-10s|\n", ally.name, ally.hp, ally.type, ally.resistance, ally.weakness);		
 	}
 	
 	public static void getStats(Pokemon[]pList){
@@ -58,7 +68,8 @@ public class Pokemon{
 			 "#","NAME", "HP", "TYPE", "RESISTANCE", "WEAKNESS");
 		for (Pokemon poke : pList){
 			System.out.printf(
-			"%-2s|%-10s|%5.1f|%-10s|%-10s|%-10s|\n",Arrays.asList(pList).indexOf(poke), poke.name, poke.hp, poke.type, poke.resistance, poke.weakness);		
+			"%-2s|%-10s|%5.1f|%-10s|%-10s|%-10s|\n",Arrays.asList(pList).indexOf(poke),
+			 poke.name, poke.hp, poke.type, poke.resistance, poke.weakness);		
 		}
 	}
 	
