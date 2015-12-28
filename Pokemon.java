@@ -4,12 +4,11 @@
 import java.util.*;
 
 public class Pokemon{
-	private double hp, maxHp, energy;
-	private int attackNum;
+	private int attackNum, hp, maxHp, energy;
 	public String name, type, resistance, weakness;
 	private ArrayList<Attack>attacks;
 	
-	public Pokemon(String name, double hp, String type, String resistance, String weakness, int attackNum, ArrayList<Attack>attacks){
+	public Pokemon(String name, int hp, String type, String resistance, String weakness, int attackNum, ArrayList<Attack>attacks){
 		this.name = name;
 		this.hp = hp;
 		this.maxHp = hp;
@@ -22,16 +21,74 @@ public class Pokemon{
 		this.attacks = attacks;
 	}
 	
+	public boolean checkDeath(){
+		if (this.hp <= 0){
+			System.out.printf("%15s has fainted! You have advanced to the next match!\n", this.name);
+			return true;
+		}
+		else{
+			return false;
+		}
+		
+	}
+	
+	public void doDamage(Pokemon onto, Attack atk ){
+		//!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!take weaknesses/resistances into account && call specials method
+		this.energy -= atk.getCost();
+		//resistance and weakness calculations
+		onto.hp -= atk.getDamage();
+		//call special method
+	}
+	
+	//!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!make a method for the specials
+	
+	public void showAttacks(){
+		//presents the attacks of the Pokemon in a nice table
+		System.out.println("__________________________________________");
+		System.out.printf(
+			"%-2s|%-15s|%-5s|%-10s|%-10s|\n",
+			 "#","NAME", "COST", "DAMAGE", "SPECIAL");
+		for (Attack atk : this.attacks){
+			System.out.printf(
+				"%-2d|%-15s|%-5d|%-10d|%-10s|\n",this.attacks.indexOf(atk),
+			 	atk.getName(), atk.getCost(), atk.getDamage(), atk.getSpecial());
+		}
+		System.out.println("__________________________________________");
+	}
+	
+	public Attack chooseAttack(){
+		//allows the user to choose an attack and returns it.
+		Scanner kb = new Scanner(System.in);
+		Attack newAttack = null;
+		while(true){
+			System.out.println("Which Attack would you like to use? Enter '-1' to go back to menu.");
+			this.showAttacks();
+			int atkIndex = kb.nextInt();
+			PokemonArena.goBack(atkIndex);
+			if(atkIndex < this.attacks.size() && atkIndex >= 0){
+				newAttack = this.attacks.get(atkIndex);
+				if (newAttack.getCost() <= this.energy){
+					return newAttack;
+				}
+			}
+		}
+	}
+		
+	
 	public static Pokemon switchPokemon(Pokemon[]chosen){
 		//allows the user to switch the pokemon on the arena
 		Scanner kb = new Scanner(System.in);
 		int newIndex = -1;
 		while (true){
-			System.out.println("Select a new Pokemon to send onto the Arena...");
+			System.out.println("Select a new Pokemon to send onto the Arena. Enter '-1' to go back to menu.");
 			Pokemon.getStats(chosen);
 			newIndex = kb.nextInt();
-			if (newIndex >=0 && newIndex < 4){//!!!!!!!!!!!!!!!!!!!!!!!!!add more exceptions like if p is dead or something
-				break;
+			PokemonArena.goBack(newIndex);
+			if (newIndex >=0 && newIndex < 4){
+				if(chosen[newIndex].hp > 0){
+					break;
+				}
+					
 			}	
 		}
 		return chosen[newIndex];
@@ -45,7 +102,7 @@ public class Pokemon{
 			 "#","NAME", "HP", "TYPE", "RESISTANCE", "WEAKNESS");
 		for (Pokemon poke : pList){		
 			System.out.printf(
-			"%-2s|%-10s|%5.1f|%-10s|%-10s|%-10s|\n",pList.indexOf(poke),
+			"%-2s|%-10s|%-5d|%-10s|%-10s|%-10s|\n",pList.indexOf(poke),
 			 poke.name, poke.hp, poke.type, poke.resistance, poke.weakness);		
 		}
 		System.out.println("_____________________________________________________");
@@ -53,14 +110,14 @@ public class Pokemon{
 	
 	public static void getStats(Pokemon enemy, Pokemon ally){
 		//presents the Pokemon's stats in a nice table
-		System.out.println("_______________________________________________________________");
-		System.out.println("|*|           ENEMY           |*|            YOU            |*|");
+		System.out.println("___________________________________________________________________________________");
+		System.out.println("|*|                ENEMY                |*|                 YOU                 |*|");
 		System.out.printf(
-		"|*|%-10s|%-5s|%-10s|*|%-10s|%-5s|%-10s|*|\n",
-		 "NAME", "HP", "TYPE","NAME", "HP", "TYPE");	
-		System.out.printf("|*|%-10s|%-5s|%-10s|*|%-10s|%-5s|%-10s|*|\n",
-		enemy.name, enemy.hp, enemy.type, ally.name, ally.hp, ally.type);
-		System.out.println("_______________________________________________________________");
+		"|*|%-10s|%-7s|%-7s|%-10s|*|%-10s|%-7s|%-7s|%-10s|*|\n",
+		 "NAME", "HP", "ENERGY", "TYPE","NAME", "HP","ENERGY", "TYPE");	
+		System.out.printf("|*|%-10s|%-3d/%-3d|%-3d/%-3d|%-10s|*|%-10s|%-3d/%-3d|%-3d/%-3d|%-10s|*|\n",
+		enemy.name, enemy.hp, enemy.maxHp, enemy.energy, 50, enemy.type, ally.name, ally.hp, ally.maxHp, ally.energy, 50, ally.type);
+		System.out.println("___________________________________________________________________________________");
 	}
 	
 	public static void getStats(Pokemon[]pList){
@@ -71,7 +128,7 @@ public class Pokemon{
 			 "#","NAME", "HP", "TYPE", "RESISTANCE", "WEAKNESS");
 		for (Pokemon poke : pList){
 			System.out.printf(
-			"%-2s|%-10s|%5.1f|%-10s|%-10s|%-10s|\n",Arrays.asList(pList).indexOf(poke),
+			"%-2s|%-10s|%-5d|%-10s|%-10s|%-10s|\n",Arrays.asList(pList).indexOf(poke),
 			 poke.name, poke.hp, poke.type, poke.resistance, poke.weakness);		
 		}
 		System.out.println("_____________________________________________________");

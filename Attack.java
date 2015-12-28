@@ -13,6 +13,12 @@ public class Attack{
 		this.special = special;
 	}
 	
+	public String getName(){return this.name;}
+	public int getCost(){return this.cost;}
+	public int getDamage(){return this.damage;}
+	public String getSpecial(){return this.special;}
+	
+	
 	
 	
 }

@@ -3,7 +3,7 @@
 //This is the main file for the text based pokemon game.
 
 /*Known bugs
- *
+ *shows stats twice during the very first battle
  *
  */
 
@@ -13,6 +13,7 @@ public class PokemonArena{
 	
 	private static int POKE_NUM = 0; //number of pokemon in the data file
 	private static Pokemon onArena; //the user Pokemon that is currently playing
+	private static Pokemon arenaEnemy;
 	//turn variables
 	private static int turn; 
 	private static final int USER = 0; 
@@ -24,49 +25,69 @@ public class PokemonArena{
 		ArrayList<Pokemon> pokeList = createPokemon();
 		Pokemon[]chosen = selectPokemon(pokeList);
 		pokeList = removeChosen(chosen, pokeList);
-		Collections.shuffle(pokeList);  //pokelist is now just the list of enemies
+		Collections.shuffle(pokeList);  //pokeList is now just the list of enemies
 		switchPokemon(chosen); //initial user pokemon selection
 		turn = rand.nextInt(2);
 		
-		for(Pokemon enemy: pokeList){
-			Pokemon.getStats(enemy, onArena);
+		arenaEnemy = newEnemy(pokeList);
+		while(pokeList.size() > 0){
 			if (turn == USER){
+				Pokemon.getStats(arenaEnemy, onArena);
 				int act = action();
 				if (act == 1){
-					//call attack method
+					Attack atk = onArena.chooseAttack();
+					onArena.doDamage(arenaEnemy, atk);
+					turn = nextTurn(pokeList);
+					
 				}
 				else if(act == 2){
 					switchPokemon(chosen);
-					turn = nextTurn();
+					turn = nextTurn(pokeList);
 				}
 				else if(act == 3){
-					turn = nextTurn();
+					turn = nextTurn(pokeList);
 				}	
 			}
 			else{
 				//AI action
-				turn = nextTurn();
+				turn = nextTurn(pokeList);
 			}
 		}
 		
 		
+		
 	}
+	
+	//method for AI action - randomly attack 
+	
+	public static void goBack(int n){
+	//goes back to the action method
+		if (n == -1){
+			action();			
+		}
+	}	
 	
 	public static int action(){
-		//asks the user if they want to retreat, attack or pass
+		//asks the user if they want to retreat, attack or pass and returns an integer value based on choice
+		//1 = attack, 2 = retreat, 3 = pass
 		Scanner kb = new Scanner(System.in);
-		System.out.println("What would you like to do?");
-		System.out.println("1| Attack");
-		System.out.println("2| Retreat");
-		System.out.println("3| Pass");
-		return kb.nextInt();			
+		System.out.println("__________________________");
+		System.out.println("|What would you like to do?|");
+		System.out.println("|1| Attack                 |");
+		System.out.println("|2| Retreat                |");
+		System.out.println("|3| Pass                   |");
+		System.out.println("|__________________________|");
+		return kb.nextInt();
 	}
-	
-	public static int nextTurn(){
+
+	public static int nextTurn(ArrayList<Pokemon>pokeList){
 		//toggles between enemy and player turns
 		int newTurn;
+		if (arenaEnemy.checkDeath()){
+			arenaEnemy = newEnemy(pokeList);
+		}
 		if (turn == ENEMY){
-			newTurn = USER;		
+			newTurn = USER;
 		}
 		else{
 			newTurn = ENEMY;
@@ -74,7 +95,14 @@ public class PokemonArena{
 		return newTurn;
 	}
 	
-	//method for AI action - randomly attack 
+	public static Pokemon newEnemy(ArrayList<Pokemon>pokeList){
+		if (arenaEnemy == null){
+			return pokeList.get(0);
+		}
+		else{
+			return pokeList.get(pokeList.indexOf(arenaEnemy) + 1);
+		}
+	}
 	
 	public static void switchPokemon(Pokemon[] chosen){
 		onArena = Pokemon.switchPokemon(chosen);
@@ -111,7 +139,7 @@ public class PokemonArena{
 				}
 				
 			}
-			Pokemon newPokemon = new Pokemon(word[0], Double.parseDouble(word[1]),word[2], 
+			Pokemon newPokemon = new Pokemon(word[0], Integer.parseInt(word[1]),word[2], 
 				word[3], word[4], Integer.parseInt(word[5]), attacks);
 			pokeList.add(newPokemon);
 		}
