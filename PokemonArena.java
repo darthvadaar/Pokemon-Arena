@@ -1,9 +1,12 @@
 //ArenaGame.java
 //Sid Bedekar
-//This is the main file for the text based pokemon game.
+//This is the main class for the text based pokemon game.
 
 /*Known bugs
- *shows stats twice during the very first battle
+ *
+ *goBack() doesn't go back!
+ *
+ *
  *
  */
 
@@ -37,23 +40,23 @@ public class PokemonArena{
 				if (act == 1){
 					Attack atk = onArena.chooseAttack();
 					onArena.doDamage(arenaEnemy, atk);
-					turn = nextTurn(pokeList);
+					turn = endTurn(pokeList, chosen);
 					
 				}
 				else if(act == 2){
 					switchPokemon(chosen);
-					turn = nextTurn(pokeList);
+					turn = endTurn(pokeList, chosen);
 				}
 				else if(act == 3){
-					turn = nextTurn(pokeList);
+					turn = endTurn(pokeList, chosen);
 				}	
 			}
 			else{
 				//AI action
-				turn = nextTurn(pokeList);
+				turn = endTurn(pokeList, chosen);
 			}
 		}
-		
+		System.out.println("Congratulations! You are indeed TRAINER SUPREME!");		
 		
 		
 	}
@@ -80,11 +83,13 @@ public class PokemonArena{
 		return kb.nextInt();
 	}
 
-	public static int nextTurn(ArrayList<Pokemon>pokeList){
-		//toggles between enemy and player turns
+	public static int endTurn(ArrayList<Pokemon>pokeList, Pokemon[]chosen){
+		//Toggles turns between player and enemy
+		//also checks if match has ended every turn
 		int newTurn;
 		if (arenaEnemy.checkDeath()){
 			arenaEnemy = newEnemy(pokeList);
+			recharge(chosen);
 		}
 		if (turn == ENEMY){
 			newTurn = USER;
@@ -93,6 +98,12 @@ public class PokemonArena{
 			newTurn = ENEMY;
 		}
 		return newTurn;
+	}
+	
+	public static void recharge(Pokemon[]chosen){
+		for (Pokemon p : chosen){
+				p.recharge();
+		}
 	}
 	
 	public static Pokemon newEnemy(ArrayList<Pokemon>pokeList){
@@ -106,7 +117,6 @@ public class PokemonArena{
 	
 	public static void switchPokemon(Pokemon[] chosen){
 		onArena = Pokemon.switchPokemon(chosen);
-		System.out.printf("%s, I choose you! \n", onArena.name);
 	}
 	
 	public static ArrayList<Pokemon> createPokemon() throws IOException{
@@ -140,7 +150,7 @@ public class PokemonArena{
 				
 			}
 			Pokemon newPokemon = new Pokemon(word[0], Integer.parseInt(word[1]),word[2], 
-				word[3], word[4], Integer.parseInt(word[5]), attacks);
+				word[3], word[4], Integer.parseInt(word[5]),"", attacks);
 			pokeList.add(newPokemon);
 		}
 		inFile.close();

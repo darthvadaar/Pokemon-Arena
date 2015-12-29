@@ -5,10 +5,10 @@ import java.util.*;
 
 public class Pokemon{
 	private int attackNum, hp, maxHp, energy;
-	public String name, type, resistance, weakness;
+	private String name, type, resistance, weakness, affect;
 	private ArrayList<Attack>attacks;
 	
-	public Pokemon(String name, int hp, String type, String resistance, String weakness, int attackNum, ArrayList<Attack>attacks){
+	public Pokemon(String name, int hp, String type, String resistance, String weakness, int attackNum, String affect, ArrayList<Attack>attacks){
 		this.name = name;
 		this.hp = hp;
 		this.maxHp = hp;
@@ -17,6 +17,7 @@ public class Pokemon{
 		this.resistance = resistance;
 		this.weakness = weakness;
 		this.attackNum = attackNum;
+		this.affect = affect;
 		
 		this.attacks = attacks;
 	}
@@ -33,10 +34,17 @@ public class Pokemon{
 	}
 	
 	public void doDamage(Pokemon onto, Attack atk ){
-		//!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!take weaknesses/resistances into account && call specials method
+		if (this.type.equals(onto.weakness)){
+			onto.hp -= atk.getDamage()*2;
+		}
+		else if (this.type.equals(onto.resistance)){
+			onto.hp -= atk.getDamage()/2;
+		}
+		else{
+			onto.hp -= atk.getDamage();
+		}
 		this.energy -= atk.getCost();
-		//resistance and weakness calculations
-		onto.hp -= atk.getDamage();
+		
 		//call special method
 	}
 	
@@ -64,7 +72,6 @@ public class Pokemon{
 			System.out.println("Which Attack would you like to use? Enter '-1' to go back to menu.");
 			this.showAttacks();
 			int atkIndex = kb.nextInt();
-			PokemonArena.goBack(atkIndex);
 			if(atkIndex < this.attacks.size() && atkIndex >= 0){
 				newAttack = this.attacks.get(atkIndex);
 				if (newAttack.getCost() <= this.energy){
@@ -74,6 +81,14 @@ public class Pokemon{
 		}
 	}
 		
+	public void recharge(){
+		//recharges the pokemon's hp and energy
+		if (this.hp > 0){
+			this.hp += 20;
+			this.energy += 10;
+		}
+		
+	}
 	
 	public static Pokemon switchPokemon(Pokemon[]chosen){
 		//allows the user to switch the pokemon on the arena
@@ -91,6 +106,7 @@ public class Pokemon{
 					
 			}	
 		}
+		System.out.printf("%s, I choose you! \n", chosen[newIndex].name);
 		return chosen[newIndex];
 	}
 	
