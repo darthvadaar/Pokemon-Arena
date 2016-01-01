@@ -4,8 +4,8 @@
 
 /*Known bugs
  *
- *goBack() doesn't go back!
- *
+ *goBack() doesn't work correctly
+ *USE AFFECT for special
  *
  *
  */
@@ -40,28 +40,36 @@ public class PokemonArena{
 				if (act == 1){
 					Attack atk = onArena.chooseAttack();
 					onArena.doDamage(arenaEnemy, atk);
-					turn = endTurn(pokeList, chosen);
+					checkEndMatch(pokeList, chosen);
+					turn = endTurn();
 					
 				}
 				else if(act == 2){
 					switchPokemon(chosen);
-					turn = endTurn(pokeList, chosen);
+					checkEndMatch(pokeList, chosen);
+					turn = endTurn();
 				}
 				else if(act == 3){
-					turn = endTurn(pokeList, chosen);
+					checkEndMatch(pokeList, chosen);
+					turn = endTurn();
 				}	
 			}
 			else{
-				//AI action
-				turn = endTurn(pokeList, chosen);
+				arenaEnemy.enemyAction(onArena);
+				checkEndMatch(pokeList, chosen);
+				turn = endTurn();
 			}
 		}
-		System.out.println("Congratulations! You are indeed TRAINER SUPREME!");		
+		if (pokeList.size() == 0){
+			System.out.println(">Congratulations! You are indeed TRAINER SUPREME!");
+		}
+		else{
+			System.out.println(">All of your pokemon are 'unconcious'. You have been knocked out!");
+		}
 		
 		
-	}
-	
-	//method for AI action - randomly attack 
+		
+	} 
 	
 	public static void goBack(int n){
 	//goes back to the action method
@@ -74,23 +82,30 @@ public class PokemonArena{
 		//asks the user if they want to retreat, attack or pass and returns an integer value based on choice
 		//1 = attack, 2 = retreat, 3 = pass
 		Scanner kb = new Scanner(System.in);
-		System.out.println("__________________________");
-		System.out.println("|What would you like to do?|");
-		System.out.println("|1| Attack                 |");
-		System.out.println("|2| Retreat                |");
-		System.out.println("|3| Pass                   |");
-		System.out.println("|__________________________|");
-		return kb.nextInt();
+		int val;
+		while (true){
+			System.out.println("__________________________");
+			System.out.println("|What would you like to do?|");
+			System.out.println("|1| Attack                 |");
+			System.out.println("|2| Retreat                |");
+			System.out.println("|3| Pass                   |");
+			System.out.println("|__________________________|");
+			val = kb.nextInt();
+			if (val > 0 && val < 4){
+				break;				
+			}
+			else{
+				System.out.println("Invalid command. Try again.");
+			}
+		}
+		
+		return val;
 	}
 
-	public static int endTurn(ArrayList<Pokemon>pokeList, Pokemon[]chosen){
+	public static int endTurn(){
 		//Toggles turns between player and enemy
 		//also checks if match has ended every turn
 		int newTurn;
-		if (arenaEnemy.checkDeath()){
-			arenaEnemy = newEnemy(pokeList);
-			recharge(chosen);
-		}
 		if (turn == ENEMY){
 			newTurn = USER;
 		}
@@ -100,6 +115,16 @@ public class PokemonArena{
 		return newTurn;
 	}
 	
+	public static void checkEndMatch(ArrayList<Pokemon>pokeList, Pokemon[]chosen){
+		if (arenaEnemy.checkEnemyDeath()){
+			arenaEnemy = newEnemy(pokeList);
+		}
+		if (onArena.checkPlayerDeath()){
+			switchPokemon(chosen);
+		}
+		recharge(chosen);
+	}
+	
 	public static void recharge(Pokemon[]chosen){
 		for (Pokemon p : chosen){
 				p.recharge();
@@ -107,12 +132,9 @@ public class PokemonArena{
 	}
 	
 	public static Pokemon newEnemy(ArrayList<Pokemon>pokeList){
-		if (arenaEnemy == null){
-			return pokeList.get(0);
-		}
-		else{
-			return pokeList.get(pokeList.indexOf(arenaEnemy) + 1);
-		}
+		pokeList.remove(0);
+		return pokeList.get(0);
+
 	}
 	
 	public static void switchPokemon(Pokemon[] chosen){

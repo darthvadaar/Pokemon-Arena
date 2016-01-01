@@ -22,30 +22,72 @@ public class Pokemon{
 		this.attacks = attacks;
 	}
 	
-	public boolean checkDeath(){
+	public boolean checkEnemyDeath(){
 		if (this.hp <= 0){
-			System.out.printf("%15s has fainted! You have advanced to the next match!\n", this.name);
+			System.out.printf("%-10s has fainted! You have advanced to the next match!\n", this.name);
 			return true;
 		}
 		else{
 			return false;
+		}	
+	}
+	
+	public boolean checkPlayerDeath(){
+		if (this.hp <= 0){
+			System.out.printf("%-10s has fainted! That's too bad!\n", this.name);
+			return true;
 		}
-		
+		else{
+			return false;
+		}	
+	}
+	
+	public void enemyAction(Pokemon onArena){
+		Random rand = new Random();
+		ArrayList<Attack> canUse = new ArrayList<Attack>();
+		for (Attack a : this.attacks){
+			if (a.getCost() < this.energy){ //arraylist of possible attacks (cost wise)
+				canUse.add(a);
+			}
+		}
+		if (canUse.size() > 0){
+			Collections.shuffle(canUse);
+			this.doDamage(onArena, canUse.get(0));
+			this.energy -= canUse.get(0).getCost();
+			System.out.printf("%-10s has done %2d damage to %-10s.\n",this.name, canUse.get(0).getDamage(),onArena.name);
+		}
 	}
 	
 	public void doDamage(Pokemon onto, Attack atk ){
+		if (atk.getSpecial().equals(" ")){	//no special
+			basicDamage(onto, atk);
+		}
+		else if(atk.getSpecial().equals("stun")){
+			Random rand = new Random();
+			int chance = rand.nextInt(2); // 0 = no stun, 1 = stun
+			if (chance == 1){
+				//STUN STUFF
+			}
+			else{
+				basicDamage(onto, atk);
+			}
+		}
+		
+		
+	}
+	
+	public void basicDamage(Pokemon onto, Attack atk){
+		//does the basic damage (still takes weaknesses and resistances into account)
 		if (this.type.equals(onto.weakness)){
 			onto.hp -= atk.getDamage()*2;
-		}
-		else if (this.type.equals(onto.resistance)){
-			onto.hp -= atk.getDamage()/2;
-		}
-		else{
-			onto.hp -= atk.getDamage();
-		}
-		this.energy -= atk.getCost();
-		
-		//call special method
+			}
+			else if (this.type.equals(onto.resistance)){
+				onto.hp -= atk.getDamage()/2;
+			}
+			else{
+				onto.hp -= atk.getDamage();
+			}
+			this.energy -= atk.getCost();
 	}
 	
 	//!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!make a method for the specials
@@ -77,15 +119,28 @@ public class Pokemon{
 				if (newAttack.getCost() <= this.energy){
 					return newAttack;
 				}
+				else{
+				System.out.println("Not enough energy for this attack. Try again.");
+				}
+			}
+			else{
+				System.out.println("Invalid command. Try again.");
 			}
 		}
 	}
 		
 	public void recharge(){
 		//recharges the pokemon's hp and energy
+		//also makes sure hp & energy doesn't exceed max
 		if (this.hp > 0){
 			this.hp += 20;
 			this.energy += 10;
+		}
+		if (this.hp > this.maxHp){
+			this.hp = this.maxHp;
+		}
+		if (this.energy > 50){
+			this.energy = 50;
 		}
 		
 	}
@@ -103,8 +158,13 @@ public class Pokemon{
 				if(chosen[newIndex].hp > 0){
 					break;
 				}
-					
-			}	
+				else{
+					System.out.println("That pokemon is 'unconcious'. Try again.");
+				}
+			}
+			else{
+				System.out.println("Invalid command. Try again.");
+			}
 		}
 		System.out.printf("%s, I choose you! \n", chosen[newIndex].name);
 		return chosen[newIndex];
