@@ -5,8 +5,6 @@
 /*Known bugs
  *
  *goBack() doesn't work correctly
- *USE AFFECT for special
- *
  *
  */
 
@@ -17,6 +15,7 @@ public class PokemonArena{
 	private static int POKE_NUM = 0; //number of pokemon in the data file
 	private static Pokemon onArena; //the user Pokemon that is currently playing
 	private static Pokemon arenaEnemy;
+	
 	//turn variables
 	private static int turn; 
 	private static final int USER = 0; 
@@ -36,35 +35,48 @@ public class PokemonArena{
 		while(pokeList.size() > 0){
 			if (turn == USER){
 				Pokemon.getStats(arenaEnemy, onArena);
+				if (onArena.getAffect().equals("stun")){
+						onArena.resetAffect();
+						checkEndMatch(pokeList, chosen);
+						turn = endTurn();			
+				}
 				int act = action();
-				if (act == 1){
+				if (act == 1){ //attack
 					Attack atk = onArena.chooseAttack();
 					onArena.doDamage(arenaEnemy, atk);
 					checkEndMatch(pokeList, chosen);
 					turn = endTurn();
-					
 				}
-				else if(act == 2){
+				else if(act == 2){ //retreat
 					switchPokemon(chosen);
 					checkEndMatch(pokeList, chosen);
 					turn = endTurn();
 				}
-				else if(act == 3){
+				else if(act == 3){ //pass
 					checkEndMatch(pokeList, chosen);
 					turn = endTurn();
 				}	
 			}
-			else{
-				arenaEnemy.enemyAction(onArena);
-				checkEndMatch(pokeList, chosen);
-				turn = endTurn();
+			else{ //AI actions
+				if (arenaEnemy.getAffect().equals("stun")){
+					System.out.println(">The enemy is stunned.");
+					arenaEnemy.resetAffect();
+					checkEndMatch(pokeList, chosen);
+					turn = endTurn();	
+				}
+				else{
+					arenaEnemy.enemyAction(onArena);
+					checkEndMatch(pokeList, chosen);
+					turn = endTurn();
+				}
+				
 			}
 		}
 		if (pokeList.size() == 0){
-			System.out.println(">Congratulations! You are indeed TRAINER SUPREME!");
+			System.out.println(">Congratulations! You have been crowned TRAINER SUPREME!");
 		}
 		else{
-			System.out.println(">All of your pokemon are 'unconcious'. You have been knocked out!");
+			System.out.println(">All of your pokemon are unconcious. GAME OVER!");
 		}
 		
 		
@@ -74,7 +86,7 @@ public class PokemonArena{
 	public static void goBack(int n){
 	//goes back to the action method
 		if (n == -1){
-			action();			
+			action();
 		}
 	}	
 	
@@ -172,7 +184,7 @@ public class PokemonArena{
 				
 			}
 			Pokemon newPokemon = new Pokemon(word[0], Integer.parseInt(word[1]),word[2], 
-				word[3], word[4], Integer.parseInt(word[5]),"", attacks);
+				word[3], word[4], Integer.parseInt(word[5]), "none", attacks);
 			pokeList.add(newPokemon);
 		}
 		inFile.close();

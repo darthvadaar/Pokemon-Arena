@@ -22,6 +22,11 @@ public class Pokemon{
 		this.attacks = attacks;
 	}
 	
+	//________________________________________________________get/set methods_____________________________________________
+	
+	public String getAffect(){return this.affect;}
+	public void resetAffect(){this.affect = "none";}
+	
 	public boolean checkEnemyDeath(){
 		if (this.hp <= 0){
 			System.out.printf("%-10s has fainted! You have advanced to the next match!\n", this.name);
@@ -42,93 +47,6 @@ public class Pokemon{
 		}	
 	}
 	
-	public void enemyAction(Pokemon onArena){
-		Random rand = new Random();
-		ArrayList<Attack> canUse = new ArrayList<Attack>();
-		for (Attack a : this.attacks){
-			if (a.getCost() < this.energy){ //arraylist of possible attacks (cost wise)
-				canUse.add(a);
-			}
-		}
-		if (canUse.size() > 0){
-			Collections.shuffle(canUse);
-			this.doDamage(onArena, canUse.get(0));
-			this.energy -= canUse.get(0).getCost();
-			System.out.printf("%-10s has done %2d damage to %-10s.\n",this.name, canUse.get(0).getDamage(),onArena.name);
-		}
-	}
-	
-	public void doDamage(Pokemon onto, Attack atk ){
-		if (atk.getSpecial().equals(" ")){	//no special
-			basicDamage(onto, atk);
-		}
-		else if(atk.getSpecial().equals("stun")){
-			Random rand = new Random();
-			int chance = rand.nextInt(2); // 0 = no stun, 1 = stun
-			if (chance == 1){
-				//STUN STUFF
-			}
-			else{
-				basicDamage(onto, atk);
-			}
-		}
-		
-		
-	}
-	
-	public void basicDamage(Pokemon onto, Attack atk){
-		//does the basic damage (still takes weaknesses and resistances into account)
-		if (this.type.equals(onto.weakness)){
-			onto.hp -= atk.getDamage()*2;
-			}
-			else if (this.type.equals(onto.resistance)){
-				onto.hp -= atk.getDamage()/2;
-			}
-			else{
-				onto.hp -= atk.getDamage();
-			}
-			this.energy -= atk.getCost();
-	}
-	
-	//!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!make a method for the specials
-	
-	public void showAttacks(){
-		//presents the attacks of the Pokemon in a nice table
-		System.out.println("__________________________________________");
-		System.out.printf(
-			"%-2s|%-15s|%-5s|%-10s|%-10s|\n",
-			 "#","NAME", "COST", "DAMAGE", "SPECIAL");
-		for (Attack atk : this.attacks){
-			System.out.printf(
-				"%-2d|%-15s|%-5d|%-10d|%-10s|\n",this.attacks.indexOf(atk),
-			 	atk.getName(), atk.getCost(), atk.getDamage(), atk.getSpecial());
-		}
-		System.out.println("__________________________________________");
-	}
-	
-	public Attack chooseAttack(){
-		//allows the user to choose an attack and returns it.
-		Scanner kb = new Scanner(System.in);
-		Attack newAttack = null;
-		while(true){
-			System.out.println("Which Attack would you like to use? Enter '-1' to go back to menu.");
-			this.showAttacks();
-			int atkIndex = kb.nextInt();
-			if(atkIndex < this.attacks.size() && atkIndex >= 0){
-				newAttack = this.attacks.get(atkIndex);
-				if (newAttack.getCost() <= this.energy){
-					return newAttack;
-				}
-				else{
-				System.out.println("Not enough energy for this attack. Try again.");
-				}
-			}
-			else{
-				System.out.println("Invalid command. Try again.");
-			}
-		}
-	}
-		
 	public void recharge(){
 		//recharges the pokemon's hp and energy
 		//also makes sure hp & energy doesn't exceed max
@@ -170,6 +88,100 @@ public class Pokemon{
 		return chosen[newIndex];
 	}
 	
+	//________________________________________________________Enemy AI methods_____________________________________________
+	
+	public void enemyAction(Pokemon onArena){
+		Random rand = new Random();
+		ArrayList<Attack> canUse = new ArrayList<Attack>();
+		for (Attack a : this.attacks){
+			if (a.getCost() < this.energy){ //arraylist of possible attacks (cost wise)
+				canUse.add(a);
+			}
+		}
+		if (canUse.size() > 0){
+			Collections.shuffle(canUse);
+			this.doDamage(onArena, canUse.get(0));
+			this.energy -= canUse.get(0).getCost();
+			System.out.printf("%-10s attacked! %-10s took %2d damage. .\n",this.name, onArena.name, canUse.get(0).getDamage());
+		}
+		else{
+			System.out.println(">The enemy has passed.");
+		}
+	}
+	
+	//________________________________________________________Attack methods_____________________________________________
+	public void doDamage(Pokemon onto, Attack atk){
+		if (atk.getSpecial().equals(" ")){	//no affect
+			basicDamage(onto, atk);
+		}
+		else if(atk.getSpecial().equals("stun")){
+			Random rand = new Random();
+			int chance = rand.nextInt(2); // 0 = no stun, 1 = stun
+			if (chance == 1){
+				basicDamage(onto, atk);
+				onto.affect = "stun";
+			}
+			else{ //basic attack
+				basicDamage(onto, atk);
+			}
+		}
+		
+		
+	}
+	
+	public void basicDamage(Pokemon onto, Attack atk){
+		//does the basic damage (still takes weaknesses and resistances into account)
+		if (this.type.equals(onto.weakness)){
+			onto.hp -= atk.getDamage()*2;
+			}
+			else if (this.type.equals(onto.resistance)){
+				onto.hp -= atk.getDamage()/2;
+			}
+			else{
+				onto.hp -= atk.getDamage();
+			}
+			this.energy -= atk.getCost();
+	}
+	
+	public void showAttacks(){
+		//presents the attacks of the Pokemon in a nice table
+		System.out.println("__________________________________________");
+		System.out.printf(
+			"%-2s|%-15s|%-5s|%-10s|%-10s|\n",
+			 "#","NAME", "COST", "DAMAGE", "SPECIAL");
+		for (Attack atk : this.attacks){
+			System.out.printf(
+				"%-2d|%-15s|%-5d|%-10d|%-10s|\n",this.attacks.indexOf(atk),
+			 	atk.getName(), atk.getCost(), atk.getDamage(), atk.getSpecial());
+		}
+		System.out.println("__________________________________________");
+	}
+	
+	public Attack chooseAttack(){
+		//allows the user to choose an attack and returns it.
+		Scanner kb = new Scanner(System.in);
+		Attack newAttack = null;
+		while(true){
+			System.out.println("Which Attack would you like to use? Enter '-1' to go back to menu.");
+			this.showAttacks();
+			int atkIndex = kb.nextInt();
+			if(atkIndex < this.attacks.size() && atkIndex >= 0){
+				newAttack = this.attacks.get(atkIndex);
+				if (newAttack.getCost() <= this.energy){
+					return newAttack;
+				}
+				else{
+				System.out.println("Not enough energy for this attack. Try again.");
+				}
+			}
+			else{
+				System.out.println("Invalid command. Try again.");
+			}
+		}
+	}
+	
+	//________________________________________________________Statistics methods_____________________________________________
+	
 	public static void getStats(ArrayList<Pokemon>pList){
 		//presents the list of Pokemon in a nice table
 		System.out.println("_____________________________________________________");
@@ -186,14 +198,14 @@ public class Pokemon{
 	
 	public static void getStats(Pokemon enemy, Pokemon ally){
 		//presents the Pokemon's stats in a nice table
-		System.out.println("___________________________________________________________________________________");
-		System.out.println("|*|                ENEMY                |*|                 YOU                 |*|");
+		System.out.println("_________________________________________________________________________________________________________");
+		System.out.println("|*|                      ENEMY                     |*|                       YOU                      |*|");
 		System.out.printf(
-		"|*|%-10s|%-7s|%-7s|%-10s|*|%-10s|%-7s|%-7s|%-10s|*|\n",
-		 "NAME", "HP", "ENERGY", "TYPE","NAME", "HP","ENERGY", "TYPE");	
-		System.out.printf("|*|%-10s|%-3d/%-3d|%-3d/%-3d|%-10s|*|%-10s|%-3d/%-3d|%-3d/%-3d|%-10s|*|\n",
-		enemy.name, enemy.hp, enemy.maxHp, enemy.energy, 50, enemy.type, ally.name, ally.hp, ally.maxHp, ally.energy, 50, ally.type);
-		System.out.println("___________________________________________________________________________________");
+		"|*|%-10s|%-7s|%-7s|%-10s|%-10s|*|%-10s|%-7s|%-7s|%-10s|%-10s|*|\n",
+		 "NAME", "HP", "ENERGY", "TYPE", "AFFECT","NAME", "HP","ENERGY", "TYPE", "AFFECT");	
+		System.out.printf("|*|%-10s|%-3d/%-3d|%-3d/%-3d|%-10s|%-10s|*|%-10s|%-3d/%-3d|%-3d/%-3d|%-10s|%-10s|*|\n",
+		enemy.name, enemy.hp, enemy.maxHp, enemy.energy, 50, enemy.type, enemy.affect, ally.name, ally.hp, ally.maxHp, ally.energy, 50, ally.type, ally.affect);
+		System.out.println("_________________________________________________________________________________________________________");
 	}
 	
 	public static void getStats(Pokemon[]pList){
