@@ -6,9 +6,11 @@ import java.util.*;
 public class Pokemon{
 	private int attackNum, hp, maxHp, energy;
 	private String name, type, resistance, weakness, affect;
+	private boolean stun, disable;
 	private ArrayList<Attack>attacks;
 	
-	public Pokemon(String name, int hp, String type, String resistance, String weakness, int attackNum, String affect, ArrayList<Attack>attacks){
+	
+	public Pokemon(String name, int hp, String type, String resistance, String weakness, int attackNum, ArrayList<Attack>attacks){ //boolean disable,
 		this.name = name;
 		this.hp = hp;
 		this.maxHp = hp;
@@ -17,15 +19,30 @@ public class Pokemon{
 		this.resistance = resistance;
 		this.weakness = weakness;
 		this.attackNum = attackNum;
-		this.affect = affect;
-		
+
 		this.attacks = attacks;
+		this.stun = false;
+		this.disable = false;
+		
+	}
+	
+	//________________________________________________________testing (cheat) methods_____________________!!remove later_
+	
+	public void stunmyself(){
+		this.stun = true;
 	}
 	
 	//________________________________________________________get/set methods_____________________________________________
 	
-	public String getAffect(){return this.affect;}
-	public void resetAffect(){this.affect = "none";}
+	public boolean getStun(){return this.stun;} 
+	public void setStun(boolean a){this.stun = a;}//stun involves skipping turns (PokemonArena) so a set method is necessary
+	
+	public boolean getDisable(){return this.disable;}
+	
+	public void setEnergy(int n){
+		this.energy = n;
+	}
+
 	
 	public boolean checkEnemyDeath(){
 		if (this.hp <= 0){
@@ -49,18 +66,21 @@ public class Pokemon{
 	
 	public void recharge(){
 		//recharges the pokemon's hp and energy
-		//also makes sure hp & energy doesn't exceed max
 		if (this.hp > 0){
 			this.hp += 20;
 			this.energy += 10;
 		}
+		this.limitRecharge();
+	}
+	
+	public void limitRecharge(){
+		//makes sure hp & energy doesn't exceed max
 		if (this.hp > this.maxHp){
 			this.hp = this.maxHp;
 		}
 		if (this.energy > 50){
 			this.energy = 50;
 		}
-		
 	}
 	
 	public static Pokemon switchPokemon(Pokemon[]chosen){
@@ -68,10 +88,9 @@ public class Pokemon{
 		Scanner kb = new Scanner(System.in);
 		int newIndex = -1;
 		while (true){
-			System.out.println("Select a new Pokemon to send onto the Arena. Enter '-1' to go back to menu.");
+			System.out.println("Select a new Pokemon to send onto the Arena.");
 			Pokemon.getStats(chosen);
 			newIndex = kb.nextInt();
-			PokemonArena.goBack(newIndex);
 			if (newIndex >=0 && newIndex < 4){
 				if(chosen[newIndex].hp > 0){
 					break;
@@ -102,7 +121,7 @@ public class Pokemon{
 			Collections.shuffle(canUse);
 			this.doDamage(onArena, canUse.get(0));
 			this.energy -= canUse.get(0).getCost();
-			System.out.printf("%-10s attacked! %-10s took %2d damage. .\n",this.name, onArena.name, canUse.get(0).getDamage());
+			System.out.printf("Enemy %-5s used %-5s! %-5s took %2d damage.\n",this.name, canUse.get(0).getName(), onArena.name, canUse.get(0).getDamage());
 		}
 		else{
 			System.out.println(">The enemy has passed.");
@@ -110,23 +129,62 @@ public class Pokemon{
 	}
 	
 	//________________________________________________________Attack methods_____________________________________________
-	public void doDamage(Pokemon onto, Attack atk){
+	public void doDamage(Pokemon onto, Attack atk){ //this = attacker, onto = attacked
 		if (atk.getSpecial().equals(" ")){	//no affect
-			basicDamage(onto, atk);
+			this.basicDamage(onto, atk);
 		}
 		else if(atk.getSpecial().equals("stun")){
-			Random rand = new Random();
-			int chance = rand.nextInt(2); // 0 = no stun, 1 = stun
-			if (chance == 1){
-				basicDamage(onto, atk);
-				onto.affect = "stun";
-			}
-			else{ //basic attack
-				basicDamage(onto, atk);
-			}
+			this.stun(onto, atk);
+		}
+		else if(atk.getSpecial().equals("disable")){
+			this.disable(onto, atk);
+		}
+		else if(atk.getSpecial().equals("recharge")){
+			this.setEnergy(this.energy + 20);
+			this.limitRecharge();
+		}
+		else if(atk.getSpecial().equals("wild card")){
+			this.wildCard(onto, atk);
+		}
+		else if(atk.getSpecial().equals("wild storm")){
+			this.wildStorm(onto, atk);
 		}
 		
-		
+	}
+	
+	public void stun(Pokemon onto, Attack atk){
+		Random rand = new Random();
+		if (rand.nextBoolean()){
+			basicDamage(onto, atk);
+			onto.stun = true;
+		}
+		else{
+			basicDamage(onto, atk);
+		}
+	}
+	
+	public void disable(Pokemon onto, Attack atk){
+		basicDamage(onto, atk);
+		onto.disable = true;
+		for(Attack a : onto.attacks){
+			if (a.getDamage() > 9){
+				a.setDamage(a.getDamage() - 10);
+			}
+		}
+	}
+	public void wildCard(Pokemon onto, Attack atk){
+		Random rand = new Random();
+		if (rand.nextBoolean()){
+			basicDamage(onto, atk);
+		}
+	}
+	
+	public void wildStorm(Pokemon onto, Attack atk){
+		Random rand = new Random();
+		if (rand.nextBoolean()){
+			basicDamage(onto, atk);
+			this.wildStorm(onto,atk);
+		}
 	}
 	
 	public void basicDamage(Pokemon onto, Attack atk){
@@ -141,6 +199,15 @@ public class Pokemon{
 				onto.hp -= atk.getDamage();
 			}
 			this.energy -= atk.getCost();
+	}
+	
+	public boolean canAttack(){
+		for (Attack a : this.attacks){
+			if (a.getCost() <= this.energy ){
+				return true;
+			}			
+		}
+		return false;
 	}
 	
 	public void showAttacks(){
@@ -162,7 +229,7 @@ public class Pokemon{
 		Scanner kb = new Scanner(System.in);
 		Attack newAttack = null;
 		while(true){
-			System.out.println("Which Attack would you like to use? Enter '-1' to go back to menu.");
+			System.out.println("Which Attack would you like to use?");
 			this.showAttacks();
 			int atkIndex = kb.nextInt();
 			if(atkIndex < this.attacks.size() && atkIndex >= 0){
@@ -180,7 +247,7 @@ public class Pokemon{
 		}
 	}
 	
-	//________________________________________________________Statistics methods_____________________________________________
+	//________________________________________________________Get Statistics methods_____________________________________________
 	
 	public static void getStats(ArrayList<Pokemon>pList){
 		//presents the list of Pokemon in a nice table
@@ -198,14 +265,30 @@ public class Pokemon{
 	
 	public static void getStats(Pokemon enemy, Pokemon ally){
 		//presents the Pokemon's stats in a nice table
+		String enemyStatus = enemy.updateStatus();
+		String allyStatus = ally.updateStatus();
 		System.out.println("_________________________________________________________________________________________________________");
 		System.out.println("|*|                      ENEMY                     |*|                       YOU                      |*|");
 		System.out.printf(
 		"|*|%-10s|%-7s|%-7s|%-10s|%-10s|*|%-10s|%-7s|%-7s|%-10s|%-10s|*|\n",
-		 "NAME", "HP", "ENERGY", "TYPE", "AFFECT","NAME", "HP","ENERGY", "TYPE", "AFFECT");	
+		 "NAME", "HP", "ENERGY", "TYPE", "AFFECT","NAME", "HP","ENERGY", "TYPE", "STATUS");	
 		System.out.printf("|*|%-10s|%-3d/%-3d|%-3d/%-3d|%-10s|%-10s|*|%-10s|%-3d/%-3d|%-3d/%-3d|%-10s|%-10s|*|\n",
-		enemy.name, enemy.hp, enemy.maxHp, enemy.energy, 50, enemy.type, enemy.affect, ally.name, ally.hp, ally.maxHp, ally.energy, 50, ally.type, ally.affect);
+		enemy.name, enemy.hp, enemy.maxHp, enemy.energy, 50, enemy.type, enemyStatus, ally.name, ally.hp, ally.maxHp, ally.energy, 50, ally.type, allyStatus);
 		System.out.println("_________________________________________________________________________________________________________");
+	}
+	
+	public String updateStatus(){
+		String nstat;
+		if(this.disable){
+			nstat = "Disabled";
+		}
+		else if(this.stun){
+			nstat = "Stunned";			
+		}
+		else{
+			nstat = "Normal";
+		}
+		return nstat;
 	}
 	
 	public static void getStats(Pokemon[]pList){

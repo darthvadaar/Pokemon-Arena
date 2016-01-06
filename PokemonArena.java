@@ -4,7 +4,13 @@
 
 /*Known bugs
  *
- *goBack() doesn't work correctly
+ * 
+ *REMOVE TEST METHODS AT THE END
+ *energy goes below 0
+ *check player and enemy wild card
+ *check player and enemy wild storm
+ *check player stun
+ *
  *
  */
 
@@ -35,34 +41,36 @@ public class PokemonArena{
 		while(pokeList.size() > 0){
 			if (turn == USER){
 				Pokemon.getStats(arenaEnemy, onArena);
-				if (onArena.getAffect().equals("stun")){
-						onArena.resetAffect();
+				if (onArena.getStun()){
+						onArena.setStun(false);
 						checkEndMatch(pokeList, chosen);
-						turn = endTurn();			
+						turn = endTurn(); //skips the turn		
 				}
-				int act = action();
-				if (act == 1){ //attack
-					Attack atk = onArena.chooseAttack();
-					onArena.doDamage(arenaEnemy, atk);
-					checkEndMatch(pokeList, chosen);
-					turn = endTurn();
+				else{
+					int act = action();
+					if (act == 1){ //attack
+						Attack atk = onArena.chooseAttack();
+						onArena.doDamage(arenaEnemy, atk);
+						checkEndMatch(pokeList, chosen);
+						turn = endTurn();
+					}
+					else if(act == 2){ //retreat
+						switchPokemon(chosen);
+						checkEndMatch(pokeList, chosen);
+						turn = endTurn();
+					}
+					else if(act == 3){ //pass
+						checkEndMatch(pokeList, chosen);
+						turn = endTurn();
+					}	
 				}
-				else if(act == 2){ //retreat
-					switchPokemon(chosen);
-					checkEndMatch(pokeList, chosen);
-					turn = endTurn();
-				}
-				else if(act == 3){ //pass
-					checkEndMatch(pokeList, chosen);
-					turn = endTurn();
-				}	
 			}
 			else{ //AI actions
-				if (arenaEnemy.getAffect().equals("stun")){
+				if (arenaEnemy.getStun()){
 					System.out.println(">The enemy is stunned.");
-					arenaEnemy.resetAffect();
+					arenaEnemy.setStun(false);
 					checkEndMatch(pokeList, chosen);
-					turn = endTurn();	
+					turn = endTurn(); //skips the turn
 				}
 				else{
 					arenaEnemy.enemyAction(onArena);
@@ -81,14 +89,7 @@ public class PokemonArena{
 		
 		
 		
-	} 
-	
-	public static void goBack(int n){
-	//goes back to the action method
-		if (n == -1){
-			action();
-		}
-	}	
+	}
 	
 	public static int action(){
 		//asks the user if they want to retreat, attack or pass and returns an integer value based on choice
@@ -104,7 +105,17 @@ public class PokemonArena{
 			System.out.println("|__________________________|");
 			val = kb.nextInt();
 			if (val > 0 && val < 4){
-				break;				
+				if (val == 1){
+					if (onArena.canAttack()){
+						break;	
+					}
+					else{
+						System.out.println("You do not have enough energy for any attacks.");
+					}
+				}
+				else{
+					break;
+				}			
 			}
 			else{
 				System.out.println("Invalid command. Try again.");
@@ -135,11 +146,13 @@ public class PokemonArena{
 			switchPokemon(chosen);
 		}
 		recharge(chosen);
+		
 	}
 	
 	public static void recharge(Pokemon[]chosen){
 		for (Pokemon p : chosen){
 				p.recharge();
+				p.limitRecharge();
 		}
 	}
 	
@@ -184,7 +197,7 @@ public class PokemonArena{
 				
 			}
 			Pokemon newPokemon = new Pokemon(word[0], Integer.parseInt(word[1]),word[2], 
-				word[3], word[4], Integer.parseInt(word[5]), "none", attacks);
+				word[3], word[4], Integer.parseInt(word[5]), attacks);
 			pokeList.add(newPokemon);
 		}
 		inFile.close();

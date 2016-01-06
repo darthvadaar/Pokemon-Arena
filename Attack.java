@@ -16,6 +16,9 @@ public class Attack{
 	public String getName(){return this.name;}
 	public int getCost(){return this.cost;}
 	public int getDamage(){return this.damage;}
+	public void setDamage(int n){
+		this.damage = n;
+	}
 	public String getSpecial(){return this.special;}
 
 
