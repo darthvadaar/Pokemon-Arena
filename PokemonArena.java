@@ -5,7 +5,7 @@
 /*Known bugs
  *
  * 
- *REMOVE TEST METHODS AT THE END
+ *REMOVE TEST METHODS AT THE END//////////////////////
  *energy goes below 0
  *check player and enemy wild card
  *check player and enemy wild storm
@@ -36,12 +36,13 @@ public class PokemonArena{
 		Collections.shuffle(pokeList);  //pokeList is now just the list of enemies
 		switchPokemon(chosen); //initial user pokemon selection
 		turn = rand.nextInt(2);
-		
 		arenaEnemy = newEnemy(pokeList);
+		
 		while(pokeList.size() > 0){
 			if (turn == USER){
 				Pokemon.getStats(arenaEnemy, onArena);
 				if (onArena.getStun()){
+						System.out.println(">Your Pokemon is stunned. Your turn has been skipped.");
 						onArena.setStun(false);
 						checkEndMatch(pokeList, chosen);
 						turn = endTurn(); //skips the turn		
@@ -67,7 +68,7 @@ public class PokemonArena{
 			}
 			else{ //AI actions
 				if (arenaEnemy.getStun()){
-					System.out.println(">The enemy is stunned.");
+					System.out.println(">The enemy is stunned. Enemy turn skipped.");
 					arenaEnemy.setStun(false);
 					checkEndMatch(pokeList, chosen);
 					turn = endTurn(); //skips the turn
@@ -110,7 +111,7 @@ public class PokemonArena{
 						break;	
 					}
 					else{
-						System.out.println("You do not have enough energy for any attacks.");
+						System.out.println(">You do not have enough energy for any attacks.");
 					}
 				}
 				else{
@@ -118,7 +119,7 @@ public class PokemonArena{
 				}			
 			}
 			else{
-				System.out.println("Invalid command. Try again.");
+				System.out.println(">Invalid command. Try again.");
 			}
 		}
 		
@@ -133,6 +134,7 @@ public class PokemonArena{
 			newTurn = USER;
 		}
 		else{
+			System.out.println(">Enemy Turn:");
 			newTurn = ENEMY;
 		}
 		return newTurn;
@@ -141,11 +143,12 @@ public class PokemonArena{
 	public static void checkEndMatch(ArrayList<Pokemon>pokeList, Pokemon[]chosen){
 		if (arenaEnemy.checkEnemyDeath()){
 			arenaEnemy = newEnemy(pokeList);
+			recharge(chosen);
 		}
 		if (onArena.checkPlayerDeath()){
 			switchPokemon(chosen);
+			recharge(chosen);
 		}
-		recharge(chosen);
 		
 	}
 	

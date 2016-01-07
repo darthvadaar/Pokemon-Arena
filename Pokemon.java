@@ -10,7 +10,7 @@ public class Pokemon{
 	private ArrayList<Attack>attacks;
 	
 	
-	public Pokemon(String name, int hp, String type, String resistance, String weakness, int attackNum, ArrayList<Attack>attacks){ //boolean disable,
+	public Pokemon(String name, int hp, String type, String resistance, String weakness, int attackNum, ArrayList<Attack>attacks){
 		this.name = name;
 		this.hp = hp;
 		this.maxHp = hp;
@@ -26,7 +26,7 @@ public class Pokemon{
 		
 	}
 	
-	//________________________________________________________testing (cheat) methods_____________________!!remove later_
+	//________________________________________________________testing (cheat) methods_____________________!!remove later_///////////////////////////////////////////////////
 	
 	public void stunmyself(){
 		this.stun = true;
@@ -46,7 +46,7 @@ public class Pokemon{
 	
 	public boolean checkEnemyDeath(){
 		if (this.hp <= 0){
-			System.out.printf("%-10s has fainted! You have advanced to the next match!\n", this.name);
+			System.out.printf(">%-7s has fainted! You have advanced to the next match!\n", this.name);
 			return true;
 		}
 		else{
@@ -56,6 +56,7 @@ public class Pokemon{
 	
 	public boolean checkPlayerDeath(){
 		if (this.hp <= 0){
+			this.limitRecharge();
 			System.out.printf("%-10s has fainted! That's too bad!\n", this.name);
 			return true;
 		}
@@ -78,8 +79,14 @@ public class Pokemon{
 		if (this.hp > this.maxHp){
 			this.hp = this.maxHp;
 		}
+		else if(this.hp < 0){
+			this.hp = 0;			
+		}
 		if (this.energy > 50){
 			this.energy = 50;
+		}
+		else if(this.energy < 0){
+			this.energy = 0;
 		}
 	}
 	
@@ -88,7 +95,7 @@ public class Pokemon{
 		Scanner kb = new Scanner(System.in);
 		int newIndex = -1;
 		while (true){
-			System.out.println("Select a new Pokemon to send onto the Arena.");
+			System.out.println(">Select a new Pokemon to send onto the Arena.");
 			Pokemon.getStats(chosen);
 			newIndex = kb.nextInt();
 			if (newIndex >=0 && newIndex < 4){
@@ -96,14 +103,14 @@ public class Pokemon{
 					break;
 				}
 				else{
-					System.out.println("That pokemon is 'unconcious'. Try again.");
+					System.out.println(">That pokemon is 'unconcious'. Try again.");
 				}
 			}
 			else{
-				System.out.println("Invalid command. Try again.");
+				System.out.println(">Invalid command. Try again.");
 			}
 		}
-		System.out.printf("%s, I choose you! \n", chosen[newIndex].name);
+		System.out.printf(">%s, I choose you! \n", chosen[newIndex].name);
 		return chosen[newIndex];
 	}
 	
@@ -121,7 +128,7 @@ public class Pokemon{
 			Collections.shuffle(canUse);
 			this.doDamage(onArena, canUse.get(0));
 			this.energy -= canUse.get(0).getCost();
-			System.out.printf("Enemy %-5s used %-5s! %-5s took %2d damage.\n",this.name, canUse.get(0).getName(), onArena.name, canUse.get(0).getDamage());
+			System.out.printf(">Enemy %-5s used %-5s!.\n",this.name, canUse.get(0).getName());
 		}
 		else{
 			System.out.println(">The enemy has passed.");
@@ -154,12 +161,9 @@ public class Pokemon{
 	
 	public void stun(Pokemon onto, Attack atk){
 		Random rand = new Random();
+		basicDamage(onto, atk);
 		if (rand.nextBoolean()){
-			basicDamage(onto, atk);
 			onto.stun = true;
-		}
-		else{
-			basicDamage(onto, atk);
 		}
 	}
 	
@@ -176,15 +180,25 @@ public class Pokemon{
 		Random rand = new Random();
 		if (rand.nextBoolean()){
 			basicDamage(onto, atk);
+			System.out.println(">HIT!");
+		}
+		else{
+			System.out.println(">MISS!");
 		}
 	}
 	
 	public void wildStorm(Pokemon onto, Attack atk){
 		Random rand = new Random();
 		if (rand.nextBoolean()){
+			System.out.println(">HIT!");
 			basicDamage(onto, atk);
+			this.energy += atk.getCost();	//cost is subtracted in basicDamage(), this reset it back
 			this.wildStorm(onto,atk);
 		}
+		else{
+			System.out.println(">MISS!");
+		}
+		this.energy -= atk.getCost(); //subtracts cost at the end
 	}
 	
 	public void basicDamage(Pokemon onto, Attack atk){
@@ -192,13 +206,13 @@ public class Pokemon{
 		if (this.type.equals(onto.weakness)){
 			onto.hp -= atk.getDamage()*2;
 			}
-			else if (this.type.equals(onto.resistance)){
-				onto.hp -= atk.getDamage()/2;
-			}
-			else{
-				onto.hp -= atk.getDamage();
-			}
-			this.energy -= atk.getCost();
+		else if (this.type.equals(onto.resistance)){
+			onto.hp -= atk.getDamage()/2;
+		}
+		else{
+			onto.hp -= atk.getDamage();
+		}
+		this.energy -= atk.getCost();
 	}
 	
 	public boolean canAttack(){
@@ -229,7 +243,7 @@ public class Pokemon{
 		Scanner kb = new Scanner(System.in);
 		Attack newAttack = null;
 		while(true){
-			System.out.println("Which Attack would you like to use?");
+			System.out.println(">Which Attack would you like to use?");
 			this.showAttacks();
 			int atkIndex = kb.nextInt();
 			if(atkIndex < this.attacks.size() && atkIndex >= 0){
@@ -238,11 +252,11 @@ public class Pokemon{
 					return newAttack;
 				}
 				else{
-				System.out.println("Not enough energy for this attack. Try again.");
+				System.out.println(">Not enough energy for this attack. Try again.");
 				}
 			}
 			else{
-				System.out.println("Invalid command. Try again.");
+				System.out.println(">Invalid command. Try again.");
 			}
 		}
 	}
