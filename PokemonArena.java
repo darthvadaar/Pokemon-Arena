@@ -1,18 +1,7 @@
 //ArenaGame.java
 //Sid Bedekar
-//This is the main class for the text based pokemon game.
-
-/*Known bugs
- *
- * 
- *REMOVE TEST METHODS AT THE END//////////////////////
- *energy goes below 0
- *check player and enemy wild card
- *check player and enemy wild storm
- *check player stun
- *
- *
- */
+//This is the main class for the text based pokemon game. It controls the battle system and stats of the pokemon during the 
+//battles in Pokemon Arena.
 
 import java.util.*;
 import java.io.*;
@@ -20,78 +9,83 @@ public class PokemonArena{
 	
 	private static int POKE_NUM = 0; //number of pokemon in the data file
 	private static Pokemon onArena; //the user Pokemon that is currently playing
-	private static Pokemon arenaEnemy;
+	private static Pokemon arenaEnemy;//enemy pokemon that is currently playing
 	
 	//turn variables
 	private static int turn; 
 	private static final int USER = 0; 
 	private static final int ENEMY = 1;
+	private static int rechargeTurn;
 	
 	public static void main(String[]args) throws IOException{
 		Random rand = new Random();
 		POKE_NUM = getPokeNum();
-		ArrayList<Pokemon> pokeList = createPokemon();
+		ArrayList<Pokemon> pokeList = createPokemon(); //create pokemon objects
 		Pokemon[]chosen = selectPokemon(pokeList);
 		pokeList = removeChosen(chosen, pokeList);
 		Collections.shuffle(pokeList);  //pokeList is now just the list of enemies
 		switchPokemon(chosen); //initial user pokemon selection
 		turn = rand.nextInt(2);
-		arenaEnemy = newEnemy(pokeList);
+		if (turn == 0){ //determine which turn energy is recharged on
+			rechargeTurn = 1;
+		}
+		else{
+			rechargeTurn = 0;
+		}
 		
-		while(pokeList.size() > 0){
+		arenaEnemy = newEnemy(pokeList);
+		while(true){
+			if (PokemonArena.checkChosenDeath(chosen) || pokeList.size() == 0 ){
+				break;
+			}
 			if (turn == USER){
 				Pokemon.getStats(arenaEnemy, onArena);
 				if (onArena.getStun()){
 						System.out.println(">Your Pokemon is stunned. Your turn has been skipped.");
-						onArena.setStun(false);
-						checkEndMatch(pokeList, chosen);
-						turn = endTurn(); //skips the turn		
+						onArena.setStun(false);	
 				}
 				else{
 					int act = action();
 					if (act == 1){ //attack
 						Attack atk = onArena.chooseAttack();
 						onArena.doDamage(arenaEnemy, atk);
-						checkEndMatch(pokeList, chosen);
-						turn = endTurn();
 					}
 					else if(act == 2){ //retreat
 						switchPokemon(chosen);
-						checkEndMatch(pokeList, chosen);
-						turn = endTurn();
 					}
-					else if(act == 3){ //pass
-						checkEndMatch(pokeList, chosen);
-						turn = endTurn();
-					}	
 				}
 			}
 			else{ //AI actions
 				if (arenaEnemy.getStun()){
 					System.out.println(">The enemy is stunned. Enemy turn skipped.");
 					arenaEnemy.setStun(false);
-					checkEndMatch(pokeList, chosen);
-					turn = endTurn(); //skips the turn
 				}
 				else{
 					arenaEnemy.enemyAction(onArena);
-					checkEndMatch(pokeList, chosen);
-					turn = endTurn();
-				}
-				
+				}	
 			}
+			if (turn == rechargeTurn){
+				rechargeEnergy(chosen);
+				arenaEnemy.rechargeEnergy();
+			}
+			if (PokemonArena.checkChosenDeath(chosen) || pokeList.size() == 0 ){
+				break;
+			}
+			checkEndMatch(pokeList, chosen);
+			turn = endTurn();
 		}
+		
 		if (pokeList.size() == 0){
 			System.out.println(">Congratulations! You have been crowned TRAINER SUPREME!");
+			System.out.println(">----------------------GAME OVER------------------------");
 		}
 		else{
-			System.out.println(">All of your pokemon are unconcious. GAME OVER!");
+			System.out.println(">All of your pokemon are unconcious.");
+			System.out.println(">------------GAME OVER--------------");
 		}
 		
-		
-		
 	}
-	
+
 	public static int action(){
 		//asks the user if they want to retreat, attack or pass and returns an integer value based on choice
 		//1 = attack, 2 = retreat, 3 = pass
@@ -122,13 +116,27 @@ public class PokemonArena{
 				System.out.println(">Invalid command. Try again.");
 			}
 		}
-		
 		return val;
 	}
-
+	
+	public static void rechargeHp(Pokemon[]chosen){
+		//recharges the hp of all player pokemon
+		for (Pokemon p : chosen){
+				p.rechargeHp();
+				p.limitRecharge();
+		}
+	}
+	
+	public static void rechargeEnergy(Pokemon[]chosen){
+		//recharges the energy of all player pokemon
+		for (Pokemon p : chosen){
+				p.rechargeEnergy();
+				p.limitRecharge();
+		}
+	}
+	
 	public static int endTurn(){
 		//Toggles turns between player and enemy
-		//also checks if match has ended every turn
 		int newTurn;
 		if (turn == ENEMY){
 			newTurn = USER;
@@ -141,31 +149,45 @@ public class PokemonArena{
 	}
 	
 	public static void checkEndMatch(ArrayList<Pokemon>pokeList, Pokemon[]chosen){
-		if (arenaEnemy.checkEnemyDeath()){
+		//end battle procedures such as recharge and new enemy/switchPokemon
+		if (arenaEnemy.checkDeath()){
+			System.out.printf(">%-7s has fainted! New round begins now!\n", arenaEnemy.getName());
 			arenaEnemy = newEnemy(pokeList);
-			recharge(chosen);
+			rechargeHp(chosen);
+			
 		}
-		if (onArena.checkPlayerDeath()){
+		if (onArena.checkDeath()){
+			System.out.printf("%-10s has fainted! That's too bad!\n", onArena.getName());
 			switchPokemon(chosen);
-			recharge(chosen);
+			rechargeHp(chosen);
 		}
-		
+		onArena.setDisable(false); //disable and stun get reset at the end of a battle
 	}
 	
-	public static void recharge(Pokemon[]chosen){
-		for (Pokemon p : chosen){
-				p.recharge();
-				p.limitRecharge();
+	public static boolean checkChosenDeath(Pokemon[]chosen){
+		//checks if all of the player pokemon are dead
+		if (chosen[0].checkDeath() && chosen[1].checkDeath() && chosen[2].checkDeath() && chosen[3].checkDeath()){
+			return true;
 		}
+		else{
+			return false;
+		}	
 	}
 	
 	public static Pokemon newEnemy(ArrayList<Pokemon>pokeList){
+		//returns a new enemy from the parameter array list
 		pokeList.remove(0);
-		return pokeList.get(0);
-
+		if (pokeList.size() == 0){
+			return null;
+			
+		}
+		else{
+			return pokeList.get(0);
+		}
 	}
 	
 	public static void switchPokemon(Pokemon[] chosen){
+		//allows the user to change their arena pokemon
 		onArena = Pokemon.switchPokemon(chosen);
 	}
 	
@@ -207,13 +229,6 @@ public class PokemonArena{
 		return pokeList;
 	}
 	
-	public static int getPokeNum() throws IOException{
-		//returns the number of pokemon in the data file.
-		Scanner inFile = new Scanner(new BufferedReader(new FileReader("pokemon.txt")));
-		int n = Integer.parseInt(inFile.nextLine());
-		return 	n;
-	}
-	
 	public static Pokemon[] selectPokemon(ArrayList<Pokemon>pList){
 		/*displays a list of Pokemon and asks the user to select 4. 
 		Returns the selected pokemon on a primitive array*/
@@ -234,6 +249,13 @@ public class PokemonArena{
 		return chosen;
 	}
 	
+	public static int getPokeNum() throws IOException{
+		//returns the number of pokemon in the data file.
+		Scanner inFile = new Scanner(new BufferedReader(new FileReader("pokemon.txt")));
+		int n = Integer.parseInt(inFile.nextLine());
+		return 	n;
+	}
+	
 	public static ArrayList<Pokemon> removeChosen(Pokemon[]chosen, ArrayList<Pokemon>pList){
 		//removes the chosen Pokemons from the main pokemon list
 		for (Pokemon i: chosen){
@@ -241,10 +263,5 @@ public class PokemonArena{
 		}
 		return pList;
 	}
-		
-		
-		
-		
-		
 			
 }

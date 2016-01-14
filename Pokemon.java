@@ -1,6 +1,6 @@
 //Pokemon.java
 //Sid Bedekar
-//The pokemon class allows for the creation of a Pokemon object. It focuses on storing pokemon stats.
+//The pokemon class allows for the creation of a Pokemon objects. It focuses on storing, displaying and changing Pokemon stats.
 import java.util.*;
 
 public class Pokemon{
@@ -8,7 +8,6 @@ public class Pokemon{
 	private String name, type, resistance, weakness, affect;
 	private boolean stun, disable;
 	private ArrayList<Attack>attacks;
-	
 	
 	public Pokemon(String name, int hp, String type, String resistance, String weakness, int attackNum, ArrayList<Attack>attacks){
 		this.name = name;
@@ -23,30 +22,25 @@ public class Pokemon{
 		this.attacks = attacks;
 		this.stun = false;
 		this.disable = false;
-		
 	}
-	
-	//________________________________________________________testing (cheat) methods_____________________!!remove later_///////////////////////////////////////////////////
-	
-	public void stunmyself(){
-		this.stun = true;
-	}
-	
-	//________________________________________________________get/set methods_____________________________________________
 	
 	public boolean getStun(){return this.stun;} 
-	public void setStun(boolean a){this.stun = a;}//stun involves skipping turns (PokemonArena) so a set method is necessary
+	public void setStun(boolean a){this.stun = a;}
 	
 	public boolean getDisable(){return this.disable;}
+	public void setDisable(boolean ans){
+		this.disable = false;
+	}
 	
 	public void setEnergy(int n){
 		this.energy = n;
 	}
-
 	
-	public boolean checkEnemyDeath(){
+	public String getName(){return this.name;}
+	
+	public boolean checkDeath(){
+		//checks if pokemon is dead or alive
 		if (this.hp <= 0){
-			System.out.printf(">%-7s has fainted! You have advanced to the next match!\n", this.name);
 			return true;
 		}
 		else{
@@ -54,21 +48,17 @@ public class Pokemon{
 		}	
 	}
 	
-	public boolean checkPlayerDeath(){
-		if (this.hp <= 0){
-			this.limitRecharge();
-			System.out.printf("%-10s has fainted! That's too bad!\n", this.name);
-			return true;
-		}
-		else{
-			return false;
-		}	
-	}
-	
-	public void recharge(){
-		//recharges the pokemon's hp and energy
+	public void rechargeHp(){
+		//recharges the pokemon's hp
 		if (this.hp > 0){
 			this.hp += 20;
+		}
+		this.limitRecharge();
+	}
+	
+	public void rechargeEnergy(){
+		//recharges the pokemon's energy
+		if (this.energy < 50){
 			this.energy += 10;
 		}
 		this.limitRecharge();
@@ -89,6 +79,7 @@ public class Pokemon{
 			this.energy = 0;
 		}
 	}
+	
 	
 	public static Pokemon switchPokemon(Pokemon[]chosen){
 		//allows the user to switch the pokemon on the arena
@@ -114,8 +105,6 @@ public class Pokemon{
 		return chosen[newIndex];
 	}
 	
-	//________________________________________________________Enemy AI methods_____________________________________________
-	
 	public void enemyAction(Pokemon onArena){
 		Random rand = new Random();
 		ArrayList<Attack> canUse = new ArrayList<Attack>();
@@ -126,17 +115,15 @@ public class Pokemon{
 		}
 		if (canUse.size() > 0){
 			Collections.shuffle(canUse);
-			this.doDamage(onArena, canUse.get(0));
-			this.energy -= canUse.get(0).getCost();
 			System.out.printf(">Enemy %-5s used %-5s!.\n",this.name, canUse.get(0).getName());
+			this.doDamage(onArena, canUse.get(0));
 		}
 		else{
 			System.out.println(">The enemy has passed.");
 		}
 	}
 	
-	//________________________________________________________Attack methods_____________________________________________
-	public void doDamage(Pokemon onto, Attack atk){ //this = attacker, onto = attacked
+	public void doDamage(Pokemon onto, Attack atk){ //this = attacker, onto = being attacked
 		if (atk.getSpecial().equals(" ")){	//no affect
 			this.basicDamage(onto, atk);
 		}
@@ -155,19 +142,24 @@ public class Pokemon{
 		}
 		else if(atk.getSpecial().equals("wild storm")){
 			this.wildStorm(onto, atk);
-		}
-		
+		}	
 	}
 	
 	public void stun(Pokemon onto, Attack atk){
+		//applies the stun effect on the pokemon
 		Random rand = new Random();
 		basicDamage(onto, atk);
 		if (rand.nextBoolean()){
 			onto.stun = true;
+			System.out.println(">STUN HIT!");
+		}
+		else{
+			System.out.println(">MISS!");
 		}
 	}
 	
 	public void disable(Pokemon onto, Attack atk){
+		//applies the disable effect on the pokemon
 		basicDamage(onto, atk);
 		onto.disable = true;
 		for(Attack a : onto.attacks){
@@ -177,6 +169,7 @@ public class Pokemon{
 		}
 	}
 	public void wildCard(Pokemon onto, Attack atk){
+		//carries out the wildcard attack
 		Random rand = new Random();
 		if (rand.nextBoolean()){
 			basicDamage(onto, atk);
@@ -188,24 +181,25 @@ public class Pokemon{
 	}
 	
 	public void wildStorm(Pokemon onto, Attack atk){
+		//carries out the wildstorm attack
 		Random rand = new Random();
 		if (rand.nextBoolean()){
 			System.out.println(">HIT!");
 			basicDamage(onto, atk);
-			this.energy += atk.getCost();	//cost is subtracted in basicDamage(), this reset it back
+			this.energy += atk.getCost();	//cost is subtracted in basicDamage(), this resets it back
 			this.wildStorm(onto,atk);
 		}
 		else{
 			System.out.println(">MISS!");
 		}
-		this.energy -= atk.getCost(); //subtracts cost at the end
+		this.energy -= atk.getCost(); //subtracts cost ONCE at the end
 	}
 	
 	public void basicDamage(Pokemon onto, Attack atk){
 		//does the basic damage (still takes weaknesses and resistances into account)
 		if (this.type.equals(onto.weakness)){
 			onto.hp -= atk.getDamage()*2;
-			}
+		}
 		else if (this.type.equals(onto.resistance)){
 			onto.hp -= atk.getDamage()/2;
 		}
@@ -216,6 +210,7 @@ public class Pokemon{
 	}
 	
 	public boolean canAttack(){
+		//checks whether pokemon is able to carry out any attacks
 		for (Attack a : this.attacks){
 			if (a.getCost() <= this.energy ){
 				return true;
@@ -292,6 +287,7 @@ public class Pokemon{
 	}
 	
 	public String updateStatus(){
+		//chnges the status to be displayed in getStats()
 		String nstat;
 		if(this.disable){
 			nstat = "Disabled";
@@ -318,13 +314,5 @@ public class Pokemon{
 		}
 		System.out.println("_____________________________________________________");
 	}
-	
-	
-	
-	
-	
-	
-	
-	
 	
 }

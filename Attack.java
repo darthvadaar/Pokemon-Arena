@@ -1,6 +1,6 @@
 //Attack.java
 //Sid Bedekar
-//Create and store Pokemon attacks.
+//Create Pokemon Attack objects.
 
 public class Attack{
 	private int damage, cost;
